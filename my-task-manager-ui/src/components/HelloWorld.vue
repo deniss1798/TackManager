@@ -41,58 +41,38 @@ export default {
       isLogin: true,
       username: '',
       password: '',
-      confirmPassword: '',
-      role: '',
-      registrationSuccess: false
+      role: ''
     };
   },
   methods: {
-async submitForm() {
-  try {
-   // console.log('submitForm вызван');
-
-    if (this.isLogin) {
-      const response = await axios.post('http://localhost:5000/login', {
-        username: this.username,
-        password: this.password
-      });
-
-      const { token, user } = response.data; // Получаем токен и данные о пользователе из ответа
-
-      // Сохраняем токен в localStorage для последующих запросов
-      localStorage.setItem('token', token);
-
-      // Сохраняем данные о пользователе в состоянии компонента
-      this.$store.commit('setUser', user);
-
-      // Перенаправляем на страницу пользователя после успешного входа
-      this.$router.push('/user-profile');
-    } else {
-      const response = await axios.post('http://localhost:5000/register', {
-        username: this.username,
-        password: this.password,
-        role: this.role
-      });
-
-      console.log('Успешная регистрация:', response.data);
-
-      // Показываем сообщение об успешной регистрации
-      this.showSuccessMessage = true;
-
-      // Через 3 секунды скрываем сообщение
-      setTimeout(() => {
-        this.showSuccessMessage = false;
-      }, 3000);
-    }
-  } catch (error) {
-    console.error('Ошибка:', error);
-  }
-},
-
-
-
-
-
+    async submitForm() {
+      try {
+        let response;
+        if (this.isLogin) {
+          response = await axios.post('http://localhost:5000/login', {
+            username: this.username,
+            password: this.password
+          });
+        } else {
+          response = await axios.post('http://localhost:5000/register', {
+            username: this.username,
+            password: this.password,
+            role: this.role
+          });
+          this.showSuccessMessage = true;
+          setTimeout(() => {
+            this.showSuccessMessage = false;
+          }, 3000);
+        }
+        if (response && response.data && response.data.token) {
+          localStorage.setItem('token', response.data.token);
+          this.$emit('loginSuccess'); // Emitting login success event
+          // Redirect to user profile page or handle as needed
+        }
+      } catch (error) {
+        console.error('Ошибка:', error);
+      }
+    },
     toggleAuthMode() {
       this.isLogin = !this.isLogin;
     }
