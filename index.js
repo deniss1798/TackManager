@@ -16,7 +16,6 @@ app.use(cors());
 app.use(express.json());
 
 
-// index.js
 
 // Подключение маршрутов для пользователей
 app.use('/users', userRoutes);
@@ -33,24 +32,12 @@ app.get('/success', (req, res) => {
 });
 
 
-
-
 // Определение маршрута для страницы пользователя
 app.get('/user-profile', (req, res) => {
   // Отправляем файл UserProfile.vue
-  res.sendFile(path.join(__dirname, 'path/to/UserProfile.vue'));
+  res.sendFile(path.join(__dirname, 'src', 'components', 'UserProfile.vue'));
 });
 
-// Простой тестовый маршрут
-app.get('/', async (req, res) => {
-  try {
-    const { rows } = await pool.query('SELECT NOW()');
-    res.json(rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
-  }
-});
 
 // Создание задачи
 app.post('/tasks', async (req, res) => {
@@ -108,6 +95,26 @@ app.delete('/tasks/:id', authenticateToken, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
+// Маршрут для получения профиля пользователя
+app.get('/api/profile', authenticateToken, (req, res) => {
+  // Предполагается, что вы имеете доступ к данным пользователя после успешной аутентификации
+  const user = req.user; // Пользователь из токена аутентификации
+
+  console.log("User object:", user);
+
+
+  // Пример данных профиля пользователя
+  const userProfile = {
+    username: user.username,
+    role: user.role,
+    // Другие данные профиля пользователя, если есть
+  };
+
+  // Отправляем профиль пользователя в виде JSON
+  res.json(userProfile);
+});
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

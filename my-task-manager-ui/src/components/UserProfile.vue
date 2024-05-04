@@ -1,10 +1,10 @@
 <template>
-  <div class="profile-container">
+ <div class="profile-container">
     <h2>Личный кабинет</h2>
-      <div class="user-info">
-    <!-- Добавьте любую информацию о пользователе -->
-    <p>Имя пользователя: {{ username }}</p>
-    <p>Роль: {{ role }}</p>
+    <div class="user-info">
+      <!-- Добавьте любую информацию о пользователе -->
+      <p v-if="username !== null">Имя пользователя: {{ username }}</p>
+      <p v-if="role !== null">Роль: {{ role }}</p>
     </div>
     <!-- Другая полезная информация для пользователя -->
   </div>
@@ -14,20 +14,42 @@
 export default {
   data() {
     return {
-      username: '', // Имя пользователя, полученное после успешной авторизации
-      role: '' // Роль пользователя, полученная после успешной авторизации
-      // Другие данные о пользователе, которые могут быть полезны на этой странице
+      username: null,
+      role: null
     };
   },
   created() {
-    // Здесь вы можете загрузить информацию о пользователе после успешной авторизации
+    // Загрузка информации о пользователе после успешной авторизации
     // Например, сделать запрос к API для получения информации о пользователе
     // Вам нужно использовать данные, полученные после успешной авторизации
-    this.username = 'Иван'; // Пример значения имени пользователя
-    this.role = 'Разработчик'; // Пример значения роли пользователя
+    this.loadUserProfile();
+  },
+  methods: {
+    async loadUserProfile() {
+      try {
+        // Здесь делаем запрос на сервер для получения данных пользователя
+        // Это может быть запрос к /api/profile или другому эндпоинту, возвращающему информацию о пользователе
+        const response = await fetch('/api/profile', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          this.username = data.user.username;
+          this.role = data.user.role;
+        } else {
+          console.error('Failed to load user profile');
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      }
+    }
   }
 };
 </script>
+
 <style scoped>
 .profile-container {
   width: 80%; /* Ширина карточки */

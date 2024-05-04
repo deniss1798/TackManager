@@ -52,6 +52,7 @@ async function loginUser(req, res) {
   }
 }
 
+
 // Middleware для аутентификации токена JWT
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
