@@ -32,25 +32,38 @@ async function registerUser(req, res) {
 
 
 // Функция для входа пользователя
+// Функция для входа пользователя
 async function loginUser(req, res) {
   const { username, password } = req.body;
-  const userResult = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-  const user = userResult.rows[0];
-
-  if (user && await bcrypt.compare(password, user.password)) {
-    const token = jwt.sign({ userId: user.userid, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ 
-      token,
-      user: { 
-        userId: user.userid,
-        username: user.username,
-        role: user.role
-      }
-    });
-  } else {
-    res.status(401).send('Invalid credentials');
+  try {
+    const userResult = await pool.query('SELECT userid, username, password, role FROM users WHERE username = $1', [username]);
+    const user = userResult.rows[0];
+    if (user && await bcrypt.compare(password, user.password)) {
+      const token = jwt.sign(
+        { userId: user.userid, username: user.username, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+    
+        res.json({ 
+            token,
+            user: { 
+                userId: user.userid,
+                username: user.username,
+                role: user.role
+            }
+        });
+    }
+    
+    else {
+      res.status(401).send('Invalid credentials');
+    }
+  } catch (error) {
+    console.error('Error in loginUser:', error);
+    res.status(500).send('Server error');
   }
 }
+
 
 
 // Middleware для аутентификации токена JWT
@@ -60,9 +73,10 @@ function authenticateToken(req, res, next) {
   if (token == null) return res.sendStatus(401);
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
+      if (err) return res.sendStatus(403);
+      console.log("Verified user from token:", user); // Добавить этот лог
+      req.user = user;
+      next();
   });
 }
 

@@ -56,6 +56,21 @@ app.post('/tasks', async (req, res) => {
   }
 });
 
+
+
+// Все задачи
+app.get('/tasks', async (req, res) => {
+  console.log("Запрос к /tasks получен");
+  try {
+    const results = await pool.query('SELECT * FROM tasks');
+    res.json(results.rows);
+  } catch (error) {
+    console.error("Error retrieving tasks:", error);
+    res.status(500).send("Server Error");
+  }
+});
+
+
 // Обновление задачи
 app.put('/tasks/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
