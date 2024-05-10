@@ -1,22 +1,20 @@
 <template>
   <div>
     <div class="side-menu" :class="{ closed: !isMenuOpen }">
-      <button @click="toggleMenu" class="menu-button">&#9776;</button>
-      <h3>Меню</h3>
-            <button @click="showCreateTaskModal" class="create-task-button">Создать задачу</button>
-
-  <ul>
-<li><router-link to="/user-profile">Профиль</router-link></li>
-  <li><router-link to="/tasks">Задачи</router-link></li>
-  <li><router-link to="/dashboard">Доска</router-link></li>
-</ul>
-
-      <!-- Кнопка создания задачи, расположенная внизу меню -->
+      <button @click="toggleMenu" class="menu-button">&#9776; </button>
+      <ul>
+        <li><router-link to="/user-profile"><i class="fas fa-user-circle"></i> Профиль</router-link></li>
+        <li><router-link to="/tasks"><i class="fas fa-tasks"></i> Задачи</router-link></li>
+        <li><router-link to="/dashboard"><i class="fas fa-columns"></i> Доска</router-link></li>
+      </ul>
+      <button @click="showCreateTaskModal" class="create-task-button">Создать задачу</button>
     </div>
   </div>
 </template>
 
 <script>
+
+
 export default {
   name: 'SideMenu',
   data() {
@@ -33,9 +31,12 @@ export default {
     }
   }
 }
+
 </script>
 
 <style scoped>
+
+
 .side-menu {
   width: 200px;
   height: 100vh;
@@ -67,11 +68,15 @@ export default {
 }
 
 .create-task-button {
-  margin-top: 10px; /* Уменьшение отступа сверху для более высокого расположения */
-  width: calc(100% - 40px);
-  padding: 8px 12px;
-  left: 20px; /* Отступ слева */
-  font-size: 18px;
+  width: 100% !important; /* Расширение на всю доступную ширину */
+  margin-top: 20px !important; /* Уменьшение отступа сверху для поднятия кнопки */
+  padding: 8px 12px !important;
+  background-color: #007bff !important;
+  color: white !important;
+  border: none !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+  border-radius: 0 5px 5px 0 !important;
 }
 
 .side-menu h3 {
@@ -109,13 +114,6 @@ export default {
   position: absolute;
   top: 12px;
   right: -40px; /* Регулировка позиции кнопки для доступности */
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  font-size: 18px;
-  cursor: pointer;
-  border-radius: 0 5px 5px 0; /* Скругление углов */
   z-index: 2; /* Убедитесь, что кнопка всегда находится поверх всех элементов */
 }
 </style>

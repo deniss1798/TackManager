@@ -42,8 +42,10 @@ async function loginUser(req, res) {
       const token = jwt.sign(
         { userId: user.userid, username: user.username, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-    );
+        { expiresIn: '24h' }  // Теперь токен будет действителен 24 часа
+      );
+      console.log("Generated JWT:", token);
+
     
         res.json({ 
             token,
@@ -70,15 +72,22 @@ async function loginUser(req, res) {
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
+  console.log('Received token:', token); // Добавьте эту строку для логирования полученного токена
+
   if (token == null) return res.sendStatus(401);
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      if (err) return res.sendStatus(403);
-      console.log("Verified user from token:", user); // Добавить этот лог
-      req.user = user;
-      next();
+    if (err) {
+      console.log('Token verification failed:', err);
+      return res.sendStatus(403); // Возможно, стоит заменить на 401
+    }
+    req.user = user;
+    next();
   });
 }
+
+
+
 
 module.exports = {
   registerUser,

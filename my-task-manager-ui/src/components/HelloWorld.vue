@@ -47,6 +47,8 @@ export default {
   },
   methods: {
     async submitForm() {
+        console.log('Form submission triggered'); // Проверьте, выводится ли это в консоль
+
       try {
         let response;
         if (this.isLogin) {
@@ -67,7 +69,7 @@ export default {
         }
         if (response && response.data && response.data.token) {
           localStorage.setItem('token', response.data.token);
-          this.$emit('loginSuccess'); // Emitting login success event
+this.$emit('loginSuccess', response.data.token);
           // Redirect to user profile page or handle as needed
         }
       } catch (error) {

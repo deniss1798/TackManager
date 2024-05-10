@@ -33,10 +33,10 @@ app.get('/success', (req, res) => {
 
 
 // Определение маршрута для страницы пользователя
-app.get('/user-profile', (req, res) => {
+/*app.get('/user-profile', (req, res) => {
   // Отправляем файл UserProfile.vue
   res.sendFile(path.join(__dirname, 'src', 'components', 'UserProfile.vue'));
-});
+});*/
 
 
 // Создание задачи
@@ -56,19 +56,45 @@ app.post('/tasks', async (req, res) => {
   }
 });
 
+// В вашем серверном файле, например, в Express.js
+app.get('/tasks/:taskid', async (req, res) => {
+  console.log("Requested task ID:", req.params.taskid); // Добавьте это для логирования
+  try {
+    const task = await pool.query('SELECT * FROM tasks WHERE taskid = $1', [req.params.taskid]);
+    if (task.rows.length > 0) {
+      res.json(task.rows[0]);
+    } else {
+      res.status(404).send('Task not found');
+    }
+  } catch (error) {
+    console.error('Error retrieving task:', error);
+    res.status(500).send('Server Error');
+  }
+});
 
 
-// Все задачи
+
+
+// Все задачи с именем автора
+// Все задачи с именами авторов
 app.get('/tasks', async (req, res) => {
   console.log("Запрос к /tasks получен");
   try {
-    const results = await pool.query('SELECT * FROM tasks');
+    const query = `
+      SELECT tasks.*, users.username as authorName
+      FROM tasks
+      JOIN users ON tasks.authorid = users.userid;
+    `;
+    const results = await pool.query(query);
+    console.log("Tasks with author names:", results.rows); // Логирование данных задач с именами авторов
     res.json(results.rows);
   } catch (error) {
-    console.error("Error retrieving tasks:", error);
+    console.error("Error retrieving tasks with author names:", error);
     res.status(500).send("Server Error");
   }
 });
+
+
 
 
 // Обновление задачи

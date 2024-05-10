@@ -20,24 +20,40 @@ export default {
     };
   },
   methods: {
+
 async loadUserProfile() {
+  const token = localStorage.getItem('userToken');
+  console.log('Token used for request:', token); // Добавьте эту строку для проверки токена
+
+  if (!token) {
+    console.error('No token available. Redirecting to login.');
+    this.$router.push('/login');
+    return;
+  }
+
   try {
-    const token = localStorage.getItem('userToken');
     const response = await axios.get('/api/profile', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
+    console.log('Profile response:', response); // Добавьте логирование ответа
     if (response.status === 200) {
       this.username = response.data.username;
       this.role = response.data.role;
     } else {
-      console.error('Failed to load user profile');
+      console.error('Failed to load user profile with status:', response.status);
     }
   } catch (error) {
     console.error('Error loading user profile:', error);
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('userToken');
+      this.$router.push('/login');
+    }
   }
 }
+
+
 
 
 
