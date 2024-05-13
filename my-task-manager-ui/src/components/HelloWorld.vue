@@ -18,6 +18,7 @@
           <option value="Аналитика">Аналитика</option>
           <option value="Разработка">Разработка</option>
           <option value="Тестирование">Тестирование</option>
+           <option value="Менеджер">Менеджер</option>
         </select>
       </div>
       <div class="form-actions">

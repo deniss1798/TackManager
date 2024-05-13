@@ -32,8 +32,16 @@ const routes = [
     meta: { requiresAuth: true }
   },
 
+
+ /* {
+    path: '/tasks/:taskId',
+    name: 'TaskDetails',
+    component: TaskDetails,
+    props: true
+  }, */
+
   {
-    path: '/tasks/:id', // Убедитесь, что 'id' здесь совпадает с используемым в компоненте
+    path: '/tasks/:id', 
     name: 'TaskDetails',
     component: TaskDetails,
     props: true,
@@ -42,7 +50,7 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/components/HelloWorld.vue'), // Укажите здесь путь к вашему компоненту входа
+    component: () => import('@/components/HelloWorld.vue'), 
     meta: { guestOnly: true }
   },
 

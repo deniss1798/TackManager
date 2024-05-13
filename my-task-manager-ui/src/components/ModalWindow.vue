@@ -1,6 +1,6 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-mask" v-if="visible">
+    <div class="modal-mask">
       <div class="modal-wrapper">
         <div class="modal-container">
           <div class="modal-header">
@@ -11,7 +11,7 @@
           </div>
           <div class="modal-footer">
             <slot name="footer">
-              <button class="modal-default-button" @click="close">Закрыть</button>
+              <button class="modal-default-button" @click="$emit('close')">Закрыть</button>
             </slot>
           </div>
         </div>
@@ -19,7 +19,6 @@
     </div>
   </transition>
 </template>
-
 
 <script>
 export default {
@@ -57,13 +56,14 @@ export default {
 }
 
 .modal-container {
-  width: 90%; /* Увеличенная ширина до 90% */
-  max-width: 1200px; /* Большая максимальная ширина */
+  width: 50%; /* Адаптация ширины модального окна под большинство экранов */
+  max-width: 600px; /* Ограничение максимальной ширины для улучшенной читаемости */
+  min-width: 320px; /* Минимальная ширина для поддержки мобильных устройств */
   background-color: #fff;
   border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   padding: 30px;
-  overflow: hidden; /* Убедитесь, что ничего не выходит за пределы скруглённых углов */
+  overflow: hidden;
 }
 
 .modal-header,
@@ -74,15 +74,15 @@ export default {
 }
 
 .modal-header {
-  font-size: 24px;
+  font-size: 28px; /* Увеличение размера шрифта заголовка */
   color: #333;
-  border-bottom: 1px solid #eaecef;
+  margin-bottom: 30px; /* Увеличение отступа под заголовком */
 }
 
 .modal-body {
-  text-align: left; /* Выравниваем текст по левому краю */
+  text-align: left; /* Выравнивание текста по левому краю */
   color: #666;
-  font-size: 16px;
+  font-size: 18px; /* Увеличение размера шрифта тела модального окна */
 }
 
 .modal-default-button {
@@ -90,20 +90,22 @@ export default {
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 15px 30px; /* Увеличение размеров кнопки */
+  border-radius: 10px; /* Скругление углов кнопки */
   font-weight: bold;
+  font-size: 16px; /* Увеличение шрифта кнопки */
 }
 
 .modal-default-button:hover {
   background-color: #0056b3;
 }
 
-/* Анимация для плавного появления и исчезновения модального окна */
 .modal-fade-enter-active, .modal-fade-leave-active {
   transition: opacity 0.5s;
 }
-.modal-fade-enter, .modal-fade-leave-to /* .modal-fade-leave-active в <2.1.8 */ {
+
+.modal-fade-enter, .modal-fade-leave-to {
   opacity: 0;
 }
 </style>
+

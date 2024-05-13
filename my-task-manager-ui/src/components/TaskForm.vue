@@ -1,162 +1,210 @@
 <template>
-  <div>
-    <h2>{{ taskId ? 'Редактировать задачу' : '' }}</h2> <!-- Условно убран текст при создании новой задачи -->
-    <form @submit.prevent="taskId ? updateTask() : createTask()">
-      <label for="title">Название задачи:</label>
-      <input type="text" id="title" v-model="task.title" required>
+  <div class="modal-mask">
+    <div class="modal-wrapper">
+      <div class="modal-container">
+        <form @submit.prevent="taskId ? updateTask() : createTask()" class="task-form">
+          <div class="form-group">
+            <label for="title">Название задачи:</label>
+            <input type="text" id="title" v-model="task.title" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="description">Описание:</label>
+            <textarea id="description" v-model="task.description" required></textarea>
+          </div>
 
-      <label for="description">Описание:</label>
-      <textarea id="description" v-model="task.description" required></textarea>
+          <div class="form-group">
+            <label for="type">Тип задачи:</label>
+            <select id="type" v-model="task.task_type" required>
+              <option disabled value="">Выберите тип</option>
+              <option>ОПЗ</option>
+              <option>Разработка требований</option>
+              <option>Доработка</option>
+              <option>Баг</option>
+            </select>
+          </div>
 
-      <label for="assignee">ID исполнителя:</label>
-      <input type="number" id="assignee" v-model="task.assigneeid" required>
+          <div class="form-group">
+            <label for="priority">Приоритет:</label>
+            <select id="priority" v-model="task.priority" required>
+              <option disabled value="">Выберите приоритет</option>
+              <option>Наивысший</option>
+              <option>Высокий</option>
+              <option>Средний</option>
+              <option>Низкий</option>
+              <option>Самый низкий</option>
+            </select>
+          </div>
 
-      <label for="deadline">Срок выполнения:</label>
-      <input type="datetime-local" id="deadline" v-model="task.deadline" required>
+          <div class="form-group">
+            <label for="deadline">Срок выполнения:</label>
+            <input type="datetime-local" id="deadline" v-model="task.deadline">
+          </div>
 
-      <button type="submit">{{ taskId ? 'Сохранить изменения' : 'Создать задачу' }}</button>
-    </form>
+          <button type="submit" class="modal-default-button">{{ taskId ? 'Сохранить изменения' : 'Создать задачу' }}</button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
-
 <script>
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
 import Swal from 'sweetalert2';
 
-
 export default {
-  props: ['taskId'],
+  props: {
+    taskId: {
+      type: [String, Number],
+      default: null
+    }
+  },
   data() {
     return {
       task: {
         title: '',
         description: '',
-        assigneeid: null,
-        deadline: '',
-        status: 'open',
-        authorid: null // Добавлено для хранения ID автора
+        task_type: '',
+        priority: '',
+        deadline: null
       }
     };
   },
-
-
-
   methods: {
-
-async createTask() {
-  this.task.authorid = this.getAuthorId(); // Устанавливаем authorid перед отправкой
-  this.task.status = 'open'; // Устанавливаем статус задачи на "Открыта"
-
-  try {
-    await axios.post('/tasks', this.task);
-    console.log('Task Created:', this.task);
-
-    // Закрытие модального окна перед показом сообщения
-    this.$emit('close'); // Убедитесь, что это правильное событие для закрытия вашего модального окна
-
-    // Показываем сообщение об успешном создании задачи
-    Swal.fire({
-      title: 'Успех!',
-      text: 'Задача успешно создана.',
-      icon: 'success',
-      confirmButtonText: 'OK'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.$router.push('/tasks'); // Перенаправление на список задач
+    async createTask() {
+      const token = localStorage.getItem('userToken');
+      if (!token) {
+        Swal.fire('Ошибка', 'Аутентификация необходима для создания задач.', 'error');
+        return;
       }
-    });
 
-  } catch (error) {
-    console.error('Error creating task:', error);
-    Swal.fire({
-      title: 'Ошибка!',
-      text: 'Не удалось создать задачу: ' + error.message,
-      icon: 'error',
-      confirmButtonText: 'OK'
-    });
-  }
-}
-,
-
-
+      try {
+        const response = await axios.post('/tasks', this.task, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        this.$emit('taskCreated', response.data); // Emit event to parent component
+        Swal.fire('Успешно!', 'Задача создана.', 'success');
+        this.resetForm();
+      } catch (error) {
+        console.error('Ошибка при создании задачи:', error);
+        Swal.fire('Ошибка', 'Не удалось создать задачу.', 'error');
+      }
+    },
     async updateTask() {
+      const token = localStorage.getItem('userToken');
+      if (!token) {
+        Swal.fire('Ошибка', 'Аутентификация необходима для редактирования задач.', 'error');
+        return;
+      }
+
       try {
-        const response = await axios.put(`/tasks/${this.taskId}`, this.task);
-        console.log('Task Updated:', response.data);
-        // Перенаправление или обновление UI
+        const response = await axios.put(`/tasks/${this.taskId}`, this.task, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        this.$emit('taskUpdated', response.data); // Emit event to parent component
+        Swal.fire('Успешно!', 'Задача обновлена.', 'success');
+        this.resetForm();
       } catch (error) {
-        console.error('Error updating task:', error);
+        console.error('Ошибка при обновлении задачи:', error);
+        Swal.fire('Ошибка', 'Не удалось обновить задачу.', 'error');
       }
     },
-    async loadTaskData() {
-      try {
-        const response = await axios.get(`/tasks/${this.taskId}`);
-        this.task = { ...response.data, authorid: this.getAuthorId() }; // Загрузка данных задачи включает автора
-        console.log("Task Data Loaded");
-      } catch (error) {
-        console.error("Error loading task data:", error);
-      }
+    resetForm() {
+      this.task = {
+        title: '',
+        description: '',
+        task_type: '',
+        priority: '',
+        deadline: null
+      };
     },
-getAuthorId() {
-    const token = localStorage.getItem('userToken');
-    if (token) {
-        try {
-            const decoded = jwtDecode(token); // Используем функцию jwtDecode для декодирования
-            return decoded.userId;
-        } catch (error) {
-            console.error('Failed to decode JWT:', error);
-            return null;
-        }
+    async loadTaskDetails(taskId) {
+      const token = localStorage.getItem('userToken');
+      if (!token) {
+        Swal.fire('Ошибка', 'Аутентификация необходима для загрузки деталей задачи.', 'error');
+        return;
+      }
+
+      try {
+        const response = await axios.get(`/tasks/${taskId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        this.task = response.data;
+      } catch (error) {
+        console.error('Ошибка при загрузке деталей задачи:', error);
+        Swal.fire('Ошибка', 'Не удалось загрузить детали задачи.', 'error');
+      }
     }
-    return null;
-},
   },
-  mounted() {
+  watch: {
+    taskId(newTaskId) {
+      if (newTaskId) {
+        this.loadTaskDetails(newTaskId);
+      } else {
+        this.resetForm();
+      }
+    }
+  },
+  created() {
     if (this.taskId) {
-      this.loadTaskData();
+      this.loadTaskDetails(this.taskId);
     }
   }
-}
+};
 </script>
 
 <style scoped>
-form {
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-direction: column;
-  width: 100%; /* Устанавливаем ширину формы на 100% */
-  max-width: 600px; /* Максимальная ширина формы */
+  align-items: center;
+  justify-content: center;
 }
 
-label {
-  margin-bottom: 5px;
-  font-weight: bold;
+.modal-wrapper {
+  width: 400px;
 }
 
-input[type="text"],
-input[type="number"],
-input[type="datetime-local"],
-textarea {
-  padding: 8px;
+.modal-container {
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.form-group {
   margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 100%; /* Поле ввода занимает всю доступную ширину */
 }
 
-button[type="submit"] {
-  cursor: pointer;
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 10px 20px;
   background-color: #28a745;
   color: white;
   border: none;
-  padding: 10px 20px;
-  margin-top: 10px;
-  border-radius: 5px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-button[type="submit"]:hover {
+button:hover {
   background-color: #218838;
 }
 </style>
-

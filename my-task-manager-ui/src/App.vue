@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <template v-if="isAuthenticated">
-      <side-menu @openCreateTaskModal="openCreateTaskModal" />
+      <side-menu @logout="logout" @openCreateTaskModal="openCreateTaskModal" />
       <div class="main-content">
         <router-view />
       </div>
@@ -26,7 +26,6 @@ import SideMenu from './components/SideMenu.vue';
 import ModalWindow from './components/ModalWindow.vue';
 import TaskForm from './components/TaskForm.vue';
 
-
 export default {
   name: 'App',
   components: {
@@ -42,39 +41,47 @@ export default {
       taskId: null
     };
   },
-  created() {
-    this.checkAuthentication(); // Проверка состояния аутентификации при создании компонента
+  watch: {
+    $route: {
+      immediate: true,
+      handler() {
+        this.checkAuthentication();
+      }
+    }
   },
-
-methods: {
-  handleLoginSuccess(token) {
-    // Сохраняем полученный токен в localStorage
-localStorage.setItem('userToken', token);
-    this.isAuthenticated = true; // Обновляем состояние аутентификации
-    this.$router.push('/user-profile'); // Перенаправляем на страницу профиля
-  },
- checkAuthentication() {
-  this.isAuthenticated = !!localStorage.getItem('userToken');
-  if (!this.isAuthenticated) {
-    this.$router.push('/login');
-  } else {
-    this.$router.push('/user-profile'); // Указать маршрут по умолчанию для аутентифицированных пользователей
+  methods: {
+    handleLoginSuccess(token) {
+      localStorage.setItem('userToken', token);
+      this.isAuthenticated = true;
+      this.checkAuthentication();
+      this.$router.push('/user-profile');
+    },
+    checkAuthentication() {
+      this.isAuthenticated = !!localStorage.getItem('userToken');
+      if (!this.isAuthenticated) {
+        this.$router.push('/login');
+      }
+    },
+    logout() {
+      localStorage.removeItem('userToken');
+      this.isAuthenticated = false;
+      this.checkAuthentication();
+      this.$router.push('/login');
+    },
+    openCreateTaskModal() {
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
+      this.taskId = null;
+    },
+    handleTaskUpdated() {
+      this.closeModal();
+    },
+    handleTaskCreated() {
+      this.closeModal();
+    }
   }
-},
-  openCreateTaskModal() {
-    this.showModal = true;
-  },
-  closeModal() {
-    this.showModal = false;
-  },
-  handleTaskUpdated() {
-    this.closeModal();
-  },
-  handleTaskCreated() {
-    this.closeModal();
-  }
-}
-
 };
 </script>
 
