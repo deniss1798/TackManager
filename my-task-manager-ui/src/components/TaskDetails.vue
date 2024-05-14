@@ -5,7 +5,6 @@
       <div class="tab-menu">
         <div :class="{ tab: true, active: activeTab === 'details' }" @click="activeTab = 'details'"><i class="fas fa-info-circle"></i> Детали</div>
         <div :class="{ tab: true, active: activeTab === 'comments' }" @click="activeTab = 'comments'"><i class="fas fa-comments"></i> Комментарии</div>
-        <div :class="{ tab: true, active: activeTab === 'history' }" @click="activeTab = 'history'"><i class="fas fa-history"></i> История</div>
       </div>
       <div v-if="activeTab === 'details'" class="details-section">
         <p><i class="fas fa-align-left"></i> Описание: {{ task.description }}</p>
@@ -91,7 +90,7 @@
 <script>
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { jwtDecode } from 'jwt-decode'; // Именованный импорт jwtDecode
+import jwt_decode from 'jwt-decode';
 
 export default {
   props: ['id'],
@@ -142,33 +141,49 @@ export default {
         Swal.fire('Ошибка', 'Не удалось обновить задачу.', 'error');
       }
     },
-    async startTask() {
-      const userId = this.getAuthorId();
-      if (!userId) {
-        Swal.fire('Ошибка', 'Не удалось идентифицировать пользователя.', 'error');
-        return;
-      }
-      try {
-        const response = await axios.patch(`/tasks/${this.task.taskid}/start`, { userId });
-        this.task = response.data;
-        Swal.fire('Задача в работе', 'Вы взяли задачу в работу.', 'success');
-        this.fetchHistory(); // Обновить историю после начала задачи
-      } catch (error) {
-        console.error('Ошибка при попытке взять задачу в работу:', error);
-        Swal.fire('Ошибка', 'Не удалось взять задачу в работу.', 'error');
-      }
-    },
-    async completeTask() {
-      try {
-        const response = await axios.patch(`/tasks/${this.task.taskid}/complete`);
-        this.task = response.data;
-        Swal.fire('Задача завершена', 'Задача успешно завершена.', 'success');
-        this.fetchHistory(); // Обновить историю после завершения задачи
-      } catch (error) {
-        console.error('Ошибка при завершении задачи:', error);
-        Swal.fire('Ошибка', 'Не удалось завершить задачу.', 'error');
-      }
-    },
+
+
+
+  async startTask() {
+  const userId = this.getAuthorId();
+  const token = localStorage.getItem('userToken');
+  if (!token) {
+    Swal.fire('Ошибка', 'Вы не авторизованы', 'error');
+    return;
+  }
+  if (!userId) {
+    Swal.fire('Ошибка', 'Не удалось идентифицировать пользователя.', 'error');
+    return;
+  }
+  try {
+    const response = await axios.patch(`/tasks/${this.task.taskid}/start`, { userId }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    this.task = response.data;
+    Swal.fire('Задача в работе', 'Вы взяли задачу в работу.', 'success');
+  } catch (error) {
+    console.error('Ошибка при попытке взять задачу в работу:', error);
+    Swal.fire('Ошибка', 'Не удалось взять задачу в работу.', 'error');
+  }
+},
+
+   async completeTask() {
+  const token = localStorage.getItem('userToken');
+  if (!token) {
+    Swal.fire('Ошибка', 'Вы не авторизованы', 'error');
+    return;
+  }
+  try {
+    const response = await axios.patch(`/tasks/${this.task.taskid}/complete`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    this.task = response.data;
+    Swal.fire('Задача завершена', 'Задача успешно завершена.', 'success');
+  } catch (error) {
+    console.error('Ошибка при завершении задачи:', error);
+    Swal.fire('Ошибка', 'Не удалось завершить задачу.', 'error');
+  }
+},
     async deleteComment(commentId) {
       const token = localStorage.getItem('userToken');
       if (!token) {
@@ -217,6 +232,7 @@ export default {
         console.error('Ошибка загрузки комментариев:', error);
       }
     },
+
     async fetchTaskDetails() {
       try {
         const response = await axios.get(`/tasks/${this.id}`);
@@ -241,6 +257,7 @@ export default {
         console.error('Ошибка загрузки истории задачи:', error);
       }
     },
+
     async deleteTask() {
       const token = localStorage.getItem('userToken');
       try {
@@ -272,7 +289,7 @@ export default {
       const token = localStorage.getItem('userToken');
       if (token) {
         try {
-          const decoded = jwtDecode(token); // Используем jwtDecode для декодирования токена
+          const decoded = jwt_decode(token); // Используем jwt_decode для декодирования токена
           return decoded.userId; // Убедитесь, что поле с ID пользователя называется именно так
         } catch (error) {
           console.error('Failed to decode JWT:', error);
@@ -281,6 +298,7 @@ export default {
       }
       return null;
     },
+
     async addComment() {
       const token = localStorage.getItem('userToken');
       if (!token) {
@@ -340,7 +358,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .task-details-page {
@@ -561,4 +578,3 @@ export default {
   background-color: #5a6268;
 }
 </style>
-

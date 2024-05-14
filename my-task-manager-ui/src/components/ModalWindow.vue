@@ -11,7 +11,7 @@
           </div>
           <div class="modal-footer">
             <slot name="footer">
-              <button class="modal-default-button" @click="$emit('close')">Закрыть</button>
+              <button class="modal-default-button" @click="close">Закрыть</button>
             </slot>
           </div>
         </div>
@@ -31,7 +31,7 @@ export default {
   },
   methods: {
     close() {
-      this.$emit('update:visible', false);
+      this.$emit('close');
     }
   }
 }
@@ -56,9 +56,9 @@ export default {
 }
 
 .modal-container {
-  width: 50%; /* Адаптация ширины модального окна под большинство экранов */
-  max-width: 600px; /* Ограничение максимальной ширины для улучшенной читаемости */
-  min-width: 320px; /* Минимальная ширина для поддержки мобильных устройств */
+  width: 50%;
+  max-width: 600px;
+  min-width: 320px;
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
@@ -74,15 +74,15 @@ export default {
 }
 
 .modal-header {
-  font-size: 28px; /* Увеличение размера шрифта заголовка */
+  font-size: 28px;
   color: #333;
-  margin-bottom: 30px; /* Увеличение отступа под заголовком */
+  margin-bottom: 30px;
 }
 
 .modal-body {
-  text-align: left; /* Выравнивание текста по левому краю */
+  text-align: left;
   color: #666;
-  font-size: 18px; /* Увеличение размера шрифта тела модального окна */
+  font-size: 18px;
 }
 
 .modal-default-button {
@@ -90,10 +90,10 @@ export default {
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 15px 30px; /* Увеличение размеров кнопки */
-  border-radius: 10px; /* Скругление углов кнопки */
+  padding: 15px 30px;
+  border-radius: 10px;
   font-weight: bold;
-  font-size: 16px; /* Увеличение шрифта кнопки */
+  font-size: 16px;
 }
 
 .modal-default-button:hover {
@@ -108,4 +108,3 @@ export default {
   opacity: 0;
 }
 </style>
-

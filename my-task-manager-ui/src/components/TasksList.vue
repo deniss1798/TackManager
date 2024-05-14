@@ -16,16 +16,13 @@
             <p><i class="fas fa-user"></i> Автор: {{ task.authorname }}</p>
             <p><i class="fas fa-layer-group"></i> Статус: {{ task.status }}</p>
             <p><i class="fas fa-calendar-day"></i> Срок: {{ new Date(task.deadline).toLocaleDateString() }}</p>
-            <p><i class="fas fa-user-check"></i> Исполнитель: {{ task.assigneeid }}</p>
+            <p><i class="fas fa-user-check"></i> Исполнитель: {{ task.assigneename }}</p>
           </div>
         </router-link>
       </li>
     </ul>
   </div>
 </template>
-
-
-
 
 <script>
 import axios from 'axios';
@@ -63,6 +60,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 .tasks-container {
   padding: 20px;

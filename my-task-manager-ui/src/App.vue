@@ -87,8 +87,8 @@ export default {
 
 <style>
 .main-content {
-  margin-left: 200px; /* Отступ слева для основного содержимого, чтобы не перекрывать боковое меню */
+  margin-left: 200px;
   padding: 20px;
-  min-height: 100vh; /* Минимальная высота вьюпорта */
+  min-height: 100vh;
 }
 </style>

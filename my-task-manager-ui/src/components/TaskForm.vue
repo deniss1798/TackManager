@@ -38,10 +38,11 @@
 
           <div class="form-group">
             <label for="deadline">Срок выполнения:</label>
-            <input type="datetime-local" id="deadline" v-model="task.deadline">
+            <input type="datetime-local" id="deadline" v-model="task.deadline" required>
           </div>
 
           <button type="submit" class="modal-default-button">{{ taskId ? 'Сохранить изменения' : 'Создать задачу' }}</button>
+          <button type="button" class="modal-default-button" @click="closeForm">Закрыть</button>
         </form>
       </div>
     </div>
@@ -50,161 +51,113 @@
 
 <script>
 import axios from 'axios';
+import jwt_decode from 'jwt-decode';
 import Swal from 'sweetalert2';
 
 export default {
-  props: {
-    taskId: {
-      type: [String, Number],
-      default: null
-    }
-  },
+  props: ['taskId'],
   data() {
     return {
       task: {
         title: '',
         description: '',
         task_type: '',
-        priority: '',
-        deadline: null
+        priority: 'Наивысший',
+        deadline: '',
+        status: 'open',
+        authorid: null
       }
     };
   },
   methods: {
     async createTask() {
-      const token = localStorage.getItem('userToken');
-      if (!token) {
-        Swal.fire('Ошибка', 'Аутентификация необходима для создания задач.', 'error');
-        return;
-      }
-
+      this.task.authorid = this.getAuthorId();
       try {
-        const response = await axios.post('/tasks', this.task, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        this.$emit('taskCreated', response.data); // Emit event to parent component
-        Swal.fire('Успешно!', 'Задача создана.', 'success');
-        this.resetForm();
+        await axios.post('/tasks', this.task);
+        Swal.fire({
+          title: 'Успех!',
+          text: 'Задача успешно создана.',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        }).then(() => this.$router.push('/tasks'));
       } catch (error) {
-        console.error('Ошибка при создании задачи:', error);
-        Swal.fire('Ошибка', 'Не удалось создать задачу.', 'error');
+        Swal.fire({
+          title: 'Ошибка!',
+          text: 'Не удалось создать задачу: ' + error.message,
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
       }
     },
-    async updateTask() {
+    getAuthorId() {
       const token = localStorage.getItem('userToken');
-      if (!token) {
-        Swal.fire('Ошибка', 'Аутентификация необходима для редактирования задач.', 'error');
-        return;
+      if (token) {
+        try {
+          const decoded = jwt_decode(token);
+          return decoded.userId;
+        } catch (error) {
+          console.error('Failed to decode JWT:', error);
+          return null;
+        }
       }
-
-      try {
-        const response = await axios.put(`/tasks/${this.taskId}`, this.task, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        this.$emit('taskUpdated', response.data); // Emit event to parent component
-        Swal.fire('Успешно!', 'Задача обновлена.', 'success');
-        this.resetForm();
-      } catch (error) {
-        console.error('Ошибка при обновлении задачи:', error);
-        Swal.fire('Ошибка', 'Не удалось обновить задачу.', 'error');
-      }
+      return null;
     },
-    resetForm() {
-      this.task = {
-        title: '',
-        description: '',
-        task_type: '',
-        priority: '',
-        deadline: null
-      };
-    },
-    async loadTaskDetails(taskId) {
-      const token = localStorage.getItem('userToken');
-      if (!token) {
-        Swal.fire('Ошибка', 'Аутентификация необходима для загрузки деталей задачи.', 'error');
-        return;
-      }
-
-      try {
-        const response = await axios.get(`/tasks/${taskId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        this.task = response.data;
-      } catch (error) {
-        console.error('Ошибка при загрузке деталей задачи:', error);
-        Swal.fire('Ошибка', 'Не удалось загрузить детали задачи.', 'error');
-      }
-    }
-  },
-  watch: {
-    taskId(newTaskId) {
-      if (newTaskId) {
-        this.loadTaskDetails(newTaskId);
-      } else {
-        this.resetForm();
-      }
+    closeForm() {
+      this.$emit('close');
     }
   },
   created() {
-    if (this.taskId) {
-      this.loadTaskDetails(this.taskId);
+    if (!this.taskId) {
+      this.task.authorid = this.getAuthorId();
     }
   }
 };
 </script>
 
 <style scoped>
-.modal-mask {
-  position: fixed;
-  z-index: 9998;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-wrapper {
-  width: 400px;
-}
-
-.modal-container {
-  background: white;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-}
-
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 25px;
 }
-
-.form-group label {
+.task-form-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #444;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
+input[type="text"],
+input[type="datetime-local"],
+textarea,
+select {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   box-sizing: border-box;
 }
 
-button {
-  padding: 10px 20px;
+button[type="submit"], .modal-default-button {
+  width: 100%;
+  padding: 12px;
   background-color: #28a745;
   color: white;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  border-radius: 8px;
+  font-size: 18px;
+  margin-top: 10px;
 }
 
-button:hover {
+button[type="submit"]:hover, .modal-default-button:hover {
   background-color: #218838;
 }
 </style>
